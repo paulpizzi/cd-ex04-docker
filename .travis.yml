@@ -1,0 +1,20 @@
+language: go
+
+go:
+    - 1.16.x
+
+services:
+    - docker
+    
+script:
+    - go test -v ./
+    - CGO_ENABLED=0 build -o demo
+    
+    - echo "$REGISTRY_PASSWORD" | docker login --username $REGISTRY_USER --password-stdin
+    - docker build -f Dockerfile -t paulpizzi/demo:latest ./
+    
+    - GIT_SHA="$(git rev-parse --short HEAD)"
+    - docker tag paulpizzi/demo:latest paulpizzi/demo:$GIT_SHA
+    
+    - docker push paulpizzi/demo:latest
+    - docker push paulpizzi/demo:$GIT_SHA
